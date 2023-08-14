@@ -1,0 +1,90 @@
+import { Client, LocalAuth, Message} from "whatsapp-web.js";
+import { Request, Response } from "express";
+import qrcodecanvas from "qrcode"
+import { sendWhatsappMessage } from "./sendMessage";
+// import { dailyVoucherUpdateMessage } from "./utils/dailyMessageUpdate";
+// import { mailTransporter } from "../config/mailConfig";
+
+
+export const client = new Client({
+    authStrategy: new LocalAuth({clientId: "Yash-test"}),
+    puppeteer: {
+        headless: true, 
+        args: [
+            '--log-level=3', // fatal only
+            '--start-maximized',
+            '--no-default-browser-check',
+            '--disable-infobars', 
+            '--disable-web-security',
+            '--disable-site-isolation-trials',
+            '--no-experiments',
+            '--ignore-gpu-blacklist',
+            '--ignore-certificate-errors',
+            '--ignore-certificate-errors-spki-list',
+            '--disable-gpu',
+            '--disable-extensions',
+            '--disable-default-apps',
+            '--enable-features=NetworkService',
+            '--disable-setuid-sandbox',
+            '--no-sandbox',
+            '--disable-dev-shm-usage',
+            '--disable-accelerated-2d-canvas',
+            '--no-first-run',
+            '--no-zygote',
+            '--single-process', 
+        ]
+    }
+});
+
+let qrUrl: string | null = null;
+
+if(!qrUrl){
+    client.on('qr', async(qr: string) => {
+        console.log('qr created!')
+        qrUrl = await qrcodecanvas.toDataURL(qr);
+       
+    });  
+}
+
+export const showQr = (req: Request, res: Response) => {
+    try {
+        if(!client.pupBrowser){
+            console.log("Here")
+            client.initialize().then(()=>{
+                if (qrUrl) {
+                    res.send(`
+                        <img src="${qrUrl}"/>
+                    `);
+                } else {
+                    res.send(`
+                        <p>Loading QR code...</p>
+                    `);
+                }
+            })
+        } else {
+            res.send(`Bot already Running`)
+        }
+       
+    } catch (error) {
+        console.log(error);
+    }
+};
+
+
+client.once('ready', async () => {
+    console.log('Client is ready!');
+    // console.log(await client.pupBrowser)
+});
+
+client.on('message', (msg: Message) => {
+    if (msg.body == '!ping') {
+        msg.reply('pong');
+    }
+});
+
+if(!client.pupBrowser){
+    client.initialize()
+}
+// DUMMY_PHONENUMBERS = '9727230804,9638051000,7990451310,9712933808'
+
+
