@@ -36,21 +36,43 @@ export const client = new Client({
     }
 });
 
-let qrUrl: string | null = null;
+// let qrUrl: string | null = null;
 
-if(!qrUrl){
-    client.on('qr', async(qr: string) => {
-        console.log('qr created!')
-        qrUrl = await qrcodecanvas.toDataURL(qr);
+// if(!qrUrl){
+//     client.on('qr', async(qr: string) => {
+//         console.log('qr created!')
+//         qrUrl = await qrcodecanvas.toDataURL(qr);
        
-    });  
-}
+//     });  
+// }
 
 export const showQr = (req: Request, res: Response) => {
-    try {
-        if(!client.pupBrowser){
-            console.log("Here")
-            client.initialize().then(()=>{
+    
+    if(client.pupPage){
+            try {
+                client.initialize()
+                client.on('qr', async (qr)=>{
+                    console.log('qr created !')
+                    let qrUrl = await qrcodecanvas.toDataURL(qr)
+                    if (qrUrl) {
+                        res.send(`
+                            <img src="${qrUrl}"/>
+                        `);
+                    } else {
+                        res.send(`
+                            <p>Loading QR code...</p>
+                        `);
+                    }
+                })
+                } catch (error) {
+                    console.log(error);
+                }
+    } else {
+        try {
+            client.initialize()
+            client.on('qr', async (qr)=>{
+                console.log('qr created !')
+                let qrUrl = await qrcodecanvas.toDataURL(qr)
                 if (qrUrl) {
                     res.send(`
                         <img src="${qrUrl}"/>
@@ -61,14 +83,16 @@ export const showQr = (req: Request, res: Response) => {
                     `);
                 }
             })
-        } else {
-            res.send(`Bot already Running`)
-        }
-       
-    } catch (error) {
-        console.log(error);
+            client.on('ready', async()=>{
+                console.log("Primary client Initiation")
+            })
+            } catch (error) {
+                console.log(error);
+            }
     }
-};
+    }
+       
+
 
 
 client.once('ready', async () => {
@@ -82,9 +106,9 @@ client.on('message', (msg: Message) => {
     }
 });
 
-if(!client.pupBrowser){
-    client.initialize()
-}
+// if(!client.pupBrowser){
+//     client.initialize()
+// }
 // DUMMY_PHONENUMBERS = '9727230804,9638051000,7990451310,9712933808'
 
 
