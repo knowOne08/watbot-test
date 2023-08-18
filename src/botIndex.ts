@@ -36,15 +36,6 @@ export const client = new Client({
     }
 });
 
-// let qrUrl: string | null = null;
-
-// if(!qrUrl){
-//     client.on('qr', async(qr: string) => {
-//         console.log('qr created!')
-//         qrUrl = await qrcodecanvas.toDataURL(qr);
-       
-//     });  
-// }
 
 export const showQr = (req: Request, res: Response) => {
     
@@ -69,7 +60,7 @@ export const showQr = (req: Request, res: Response) => {
                 }
     } else {
         try {
-            client.initialize()
+            
             client.on('qr', async (qr)=>{
                 console.log('qr created !')
                 let qrUrl = await qrcodecanvas.toDataURL(qr)
@@ -83,9 +74,7 @@ export const showQr = (req: Request, res: Response) => {
                     `);
                 }
             })
-            client.on('ready', async()=>{
-                console.log("Primary client Initiation")
-            })
+            client.initialize()
             } catch (error) {
                 console.log(error);
             }
@@ -95,9 +84,8 @@ export const showQr = (req: Request, res: Response) => {
 
 
 
-client.once('ready', async () => {
+client.on('ready', async () => {
     console.log('Client is ready!');
-    // console.log(await client.pupBrowser)
 });
 
 client.on('message', (msg: Message) => {
